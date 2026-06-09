@@ -1,10 +1,14 @@
-# ⚡ ToolVerse – AI-Powered Multi-Tool Web Platform
+<img width="1919" height="899" alt="image" src="https://github.com/user-attachments/assets/d51b8551-3697-4852-a76f-b820c7acf8ca" /><img width="1919" height="906" alt="image" src="https://github.com/user-attachments/assets/96cdf11e-85d2-403e-a811-b165c0102ee3" /># ⚡ ToolVerse – AI-Powered Multi-Tool Web Platform
 
 A full-stack web platform with 5 AI-powered media tools built with Python and Flask. Convert, transcribe, summarize, and listen — completely free, no sign-up needed.
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue?style=flat&logo=python)
 ![Flask](https://img.shields.io/badge/Flask-3.1-black?style=flat&logo=flask)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat)
+
+
+<img width="1919" height="899" alt="image" src="https://github.com/user-attachments/assets/7a4302e5-2674-42af-bd0e-9d08cc7bcdf8" />
+<img width="1919" height="899" alt="image" src="https://github.com/user-attachments/assets/591f68bf-1dd2-4497-8937-a57a10c8ed77" />
 
 ---
 
@@ -103,7 +107,7 @@ toolverse/
 | `GROQ_API_KEY` | Your Groq API key for the AI chatbot |
 
 ---
-<img width="1109" height="571" alt="image" src="https://github.com/user-attachments/assets/24c1073f-533a-4d6e-bf94-e827b8305f7e" />
+
 
 ## 👤 Author
 
