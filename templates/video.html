@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Video to Transcript — ToolVerse</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/navbar.css" />
+</head>
+<body>
+
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+  <div class="blob blob3"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-logo">⚡ ToolVerse</div>
+    <div class="nav-links">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/audiobook" class="nav-link">🎧 Audiobook</a>
+      <a href="/video" class="nav-link active">🎬 Video</a>
+      <a href="/summarizer" class="nav-link">📄 Summarizer</a>
+      <a href="/tts" class="nav-link">🔊 Text to Speech</a>
+      <a href="/imagetext" class="nav-link">🖼️ Image to Text</a>
+      <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
+    </div>
+  </nav>
+
+  <!-- Page header -->
+  <div class="page-header page-with-nav">
+    <p class="tag">🎬 Video to Transcript</p>
+    <h2 class="page-title">Upload a video. <span class="gradient-text">Get the text.</span></h2>
+    <p class="page-desc">Extract a full text transcript from any video file instantly — free, no sign up needed.</p>
+  </div>
+
+  <!-- Glass card -->
+  <div class="container">
+
+    <!-- Wave -->
+    <div class="wave-container">
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+    </div>
+
+    <!-- Upload section -->
+    <div id="uploadSection">
+      <div class="upload-area">
+        <input type="file" id="videoFile" accept="video/*" hidden />
+        <div class="upload-icon">🎬</div>
+        <h3>Click to choose your video</h3>
+        <p>Supports MP4, MOV, AVI, MKV</p>
+        <button class="browse-btn" onclick="document.getElementById('videoFile').click()">
+          Choose Video File
+        </button>
+        <p id="fileLabel" class="file-label">No file chosen</p>
+      </div>
+
+      <!-- Supported formats -->
+      <div class="format-tags">
+        <span class="format-tag">MP4</span>
+        <span class="format-tag">MOV</span>
+        <span class="format-tag">AVI</span>
+        <span class="format-tag">MKV</span>
+        <span class="format-tag">WEBM</span>
+      </div>
+
+      <button class="convert-btn" id="convertBtn" onclick="convertVideo()">
+        <span class="btn-icon">🎬</span>
+        <span class="btn-text">Extract Transcript</span>
+      </button>
+
+      <!-- Progress -->
+      <div id="progressBox" style="display:none;">
+        <div class="progress-header">
+          <span>Extracting transcript... this may take a while ⏳</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-track">
+          <div id="progressBar"></div>
+        </div>
+        <p class="progress-note">⚠️ Longer videos take more time — please don't close this tab!</p>
+      </div>
+    </div>
+
+    <!-- Transcript Result -->
+    <div id="resultBox" style="display:none;">
+      <div class="transcript-result-card">
+        <div class="transcript-result-header">
+          <div>
+            <h3>✅ Transcript Ready!</h3>
+            <p id="wordCount" class="word-count-label"></p>
+          </div>
+          <button class="copy-btn" onclick="copyTranscript()">📋 Copy All</button>
+        </div>
+        <div class="transcript-result-body" id="transcriptResult"></div>
+        <button class="convert-another-btn" onclick="resetVideo()">
+          🔄 Transcribe Another Video
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    document.getElementById("videoFile").addEventListener("change", function() {
+      const name = this.files[0].name;
+      const size = (this.files[0].size / (1024 * 1024)).toFixed(1);
+      document.getElementById("fileLabel").textContent = "✅ " + name + " (" + size + " MB)";
+    });
+
+    async function convertVideo() {
+      const f = document.getElementById("videoFile");
+      if (!f.files.length) { alert("Please choose a video first!"); return; }
+
+      document.getElementById("progressBox").style.display = "block";
+      document.getElementById("resultBox").style.display = "none";
+      document.getElementById("convertBtn").disabled = true;
+      document.getElementById("convertBtn").style.opacity = "0.6";
+
+      // Slow progress animation since video takes longer
+      let w = 0;
+      const bar = document.getElementById("progressBar");
+      const pct = document.getElementById("progressPercent");
+      const timer = setInterval(() => {
+        if (w >= 85) clearInterval(timer);
+        else { w += 0.5; bar.style.width = w + "%"; pct.textContent = Math.floor(w) + "%"; }
+      }, 300);
+
+      const fd = new FormData();
+      fd.append("video", f.files[0]);
+
+      try {
+        const res = await fetch("/video/convert", { method: "POST", body: fd });
+        const data = await res.json();
+        clearInterval(timer);
+        bar.style.width = "100%";
+        pct.textContent = "100%";
+
+        if (data.error) {
+          alert("Error: " + data.error);
+          document.getElementById("progressBox").style.display = "none";
+          document.getElementById("convertBtn").disabled = false;
+          document.getElementById("convertBtn").style.opacity = "1";
+          return;
+        }
+
+        setTimeout(() => {
+          document.getElementById("progressBox").style.display = "none";
+          document.getElementById("uploadSection").style.display = "none";
+          const transcript = data.transcript;
+          document.getElementById("transcriptResult").textContent = transcript;
+          const wordCount = transcript.split(/\s+/).filter(w => w).length;
+          document.getElementById("wordCount").textContent = wordCount + " words extracted";
+          document.getElementById("resultBox").style.display = "block";
+          document.getElementById("convertBtn").disabled = false;
+          document.getElementById("convertBtn").style.opacity = "1";
+        }, 500);
+
+      } catch(e) {
+        clearInterval(timer);
+        alert("Error: " + e.message);
+        document.getElementById("progressBox").style.display = "none";
+        document.getElementById("convertBtn").disabled = false;
+        document.getElementById("convertBtn").style.opacity = "1";
+      }
+    }
+
+    function copyTranscript() {
+      const text = document.getElementById("transcriptResult").textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector(".copy-btn");
+        btn.textContent = "✅ Copied!";
+        setTimeout(() => btn.textContent = "📋 Copy All", 2000);
+      });
+    }
+
+    function resetVideo() {
+      document.getElementById("uploadSection").style.display = "block";
+      document.getElementById("resultBox").style.display = "none";
+      document.getElementById("fileLabel").textContent = "No file chosen";
+      document.getElementById("progressBar").style.width = "0%";
+    }
+  </script>
+    <script src="/static/theme.js"></script>
+     <script src="/static/loader.js"></script>
+     <script src="/static/chatbot.js"></script>
+</body>
+</html>

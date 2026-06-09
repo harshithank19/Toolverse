@@ -1,0 +1,11 @@
+.env
+venv/
+__pycache__/
+uploads/
+output/
+*.pyc
+*.pdf
+*.mp3
+*.wav
+pyvenv.cfg
+.DS_Store

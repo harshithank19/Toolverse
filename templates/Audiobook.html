@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <div class="page-header page-with-nav"></div>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PDF to Audiobook</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/navbar.css" /> 
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-logo">⚡ ToolVerse</div>
+    <div class="nav-links">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/audiobook" class="nav-link active">🎧 Audiobook</a>
+      <a href="/video" class="nav-link">🎬 Video</a>
+      <a href="/summarizer" class="nav-link">📄 Summarizer</a>
+      <a href="/tts" class="nav-link">🔊 Text to Speech</a>
+      <a href="/imagetext" class="nav-link">🖼️ Image to Text</a>
+      <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
+    </div>
+  </nav>
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+  <div class="blob blob3"></div>
+
+  <!-- Top page header -->
+  <div class="page-header">
+    <p class="tag">✨ Free & Instant</p>
+    <h2 class="page-title">Turn your PDFs into <span class="gradient-text">Audio</span></h2>
+    <p class="page-desc">No sign up. No limits. Just upload your PDF and listen in seconds.</p>
+  </div>
+
+  <!-- Glass card -->
+  <div class="container">
+
+    <!-- Wave animation -->
+    <div class="wave-container">
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+    </div>
+
+    <!-- Upload + Convert section -->
+    <div id="uploadSection">
+      <div class="upload-area">
+        <input type="file" id="pdfFile" accept=".pdf" hidden />
+        <div class="upload-icon">📄</div>
+        <h3>Click to choose your PDF</h3>
+        <p>Supports all PDF files</p>
+        <button class="browse-btn" onclick="document.getElementById('pdfFile').click()">
+          Choose PDF File
+        </button>
+        <p id="fileLabel" class="file-label">No file chosen</p>
+      </div>
+
+      <button class="convert-btn" id="convertBtn" onclick="runAudio()">
+        <span class="btn-icon">🎙️</span>
+        <span class="btn-text">Convert to Audiobook</span>
+      </button>
+
+      <div id="progressBox" style="display:none;">
+        <div class="progress-header">
+          <span>Converting your PDF...</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-track">
+          <div id="progressBar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Player + Transcript side by side -->
+    <div id="playerBox" style="display:none;">
+      <div class="result-layout">
+
+        <!-- LEFT: Audio Player -->
+        <div class="player-card">
+          <div class="player-header">
+            <div class="player-icon">🎵</div>
+            <div>
+              <h3>Your Audiobook is Ready!</h3>
+              <p id="audioFileName" class="audio-filename"></p>
+            </div>
+          </div>
+          <audio controls id="myPlayer">
+            <source id="mySource" src="" type="audio/mpeg"/>
+          </audio>
+          <a id="downloadBtn" class="download-btn" download>
+            ⬇️ Download MP3
+          </a>
+          <!-- Convert another button -->
+          <button class="convert-another-btn" onclick="resetApp()">
+            🔄 Convert Another PDF
+          </button>
+        </div>
+
+        <!-- RIGHT: Transcript -->
+        <div class="transcript-card">
+          <div class="transcript-header">
+            <span>📝</span>
+            <h3>Transcript</h3>
+          </div>
+          <div class="transcript-body" id="transcriptBody">
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let transcriptWords = [];
+    let wordElements = [];
+
+    document.getElementById("pdfFile").addEventListener("change", function() {
+      const name = this.files[0].name;
+      document.getElementById("fileLabel").textContent = "✅ " + name;
+      document.getElementById("audioFileName").textContent = name.replace(".pdf", ".mp3");
+    });
+
+    async function runAudio() {
+      const f = document.getElementById("pdfFile");
+      if (!f.files.length) { alert("Please choose a PDF first!"); return; }
+
+      document.getElementById("progressBox").style.display = "block";
+      document.getElementById("playerBox").style.display = "none";
+      document.getElementById("convertBtn").disabled = true;
+      document.getElementById("convertBtn").style.opacity = "0.6";
+
+      let w = 0;
+      const bar = document.getElementById("progressBar");
+      const pct = document.getElementById("progressPercent");
+      const timer = setInterval(() => {
+        if (w >= 90) clearInterval(timer);
+        else { w += 1; bar.style.width = w + "%"; pct.textContent = w + "%"; }
+      }, 150);
+
+      const fd = new FormData();
+      fd.append("pdf", f.files[0]);
+
+      try {
+        const res = await fetch("/convert", { method: "POST", body: fd });
+        const data = await res.json();
+        clearInterval(timer);
+        bar.style.width = "100%";
+        pct.textContent = "100%";
+
+        if (data.error) {
+          alert("Error: " + data.error);
+          document.getElementById("progressBox").style.display = "none";
+          document.getElementById("convertBtn").disabled = false;
+          document.getElementById("convertBtn").style.opacity = "1";
+          return;
+        }
+
+        setupTranscript(data.transcript);
+
+        setTimeout(() => {
+          document.getElementById("progressBox").style.display = "none";
+          // Hide upload section, show player
+          document.getElementById("uploadSection").style.display = "none";
+          document.getElementById("mySource").src = "/output/" + data.audio_file;
+          const player = document.getElementById("myPlayer");
+          player.load();
+          document.getElementById("downloadBtn").href = "/output/" + data.audio_file;
+          document.getElementById("playerBox").style.display = "block";
+          document.getElementById("convertBtn").disabled = false;
+          document.getElementById("convertBtn").style.opacity = "1";
+          player.addEventListener("timeupdate", () => highlightWord(player));
+        }, 500);
+
+      } catch(e) {
+        clearInterval(timer);
+        alert("Error: " + e.message);
+        document.getElementById("progressBox").style.display = "none";
+        document.getElementById("convertBtn").disabled = false;
+        document.getElementById("convertBtn").style.opacity = "1";
+      }
+    }
+
+    // Reset app to upload another PDF
+    function resetApp() {
+      document.getElementById("uploadSection").style.display = "block";
+      document.getElementById("playerBox").style.display = "none";
+      document.getElementById("fileLabel").textContent = "No file chosen";
+      document.getElementById("progressBar").style.width = "0%";
+      document.getElementById("transcriptBody").innerHTML = "";
+      wordElements = [];
+    }
+
+    function setupTranscript(text) {
+      const body = document.getElementById("transcriptBody");
+      body.innerHTML = "";
+      transcriptWords = text.trim().split(/\s+/);
+      const displayWords = transcriptWords.slice(0, 500);
+      wordElements = [];
+      displayWords.forEach((word, i) => {
+        const span = document.createElement("span");
+        span.textContent = word + " ";
+        span.className = "transcript-word";
+        span.id = "word-" + i;
+        body.appendChild(span);
+        wordElements.push(span);
+      });
+      if (transcriptWords.length > 500) {
+        const more = document.createElement("span");
+        more.textContent = "... (transcript continues)";
+        more.style.color = "rgba(255,255,255,0.3)";
+        more.style.fontSize = "0.8rem";
+        body.appendChild(more);
+      }
+    }
+
+    function highlightWord(player) {
+      if (!wordElements.length || !player.duration) return;
+      const progress = player.currentTime / player.duration;
+      const currentIndex = Math.floor(progress * wordElements.length);
+      wordElements.forEach((el, i) => {
+        if (i < currentIndex) {
+          el.classList.remove("word-active");
+          el.classList.add("word-spoken");
+        } else if (i === currentIndex) {
+          el.classList.remove("word-spoken");
+          el.classList.add("word-active");
+          el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        } else {
+          el.classList.remove("word-active", "word-spoken");
+        }
+      });
+    }
+  
+  </script>
+  <script src="/static/theme.js"></script>
+  <script src="/static/loader.js"></script>
+  <script src="/static/chatbot.js"></script>
+</body>
+</html>

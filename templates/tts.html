@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Text to Speech — ToolVerse</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/navbar.css" />
+</head>
+<body>
+
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+  <div class="blob blob3"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-logo">⚡ ToolVerse</div>
+    <div class="nav-links">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/audiobook" class="nav-link">🎧 Audiobook</a>
+      <a href="/video" class="nav-link">🎬 Video</a>
+      <a href="/summarizer" class="nav-link">📄 Summarizer</a>
+      <a href="/tts" class="nav-link active">🔊 Text to Speech</a>
+      <a href="/imagetext" class="nav-link">🖼️ Image to Text</a>
+      <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
+    </div>
+  </nav>
+
+  <!-- Page header -->
+  <div class="page-header page-with-nav">
+    <p class="tag">🔊 Text to Speech</p>
+    <h2 class="page-title">Type it. <span class="gradient-text">Hear it.</span></h2>
+    <p class="page-desc">Convert any text into natural sounding audio instantly — free, no sign up needed.</p>
+  </div>
+
+  <!-- Glass card -->
+  <div class="container">
+
+    <!-- Wave -->
+    <div class="wave-container">
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+    </div>
+
+    <!-- Text input area -->
+    <div id="inputSection">
+      <div class="text-input-wrapper">
+        <textarea
+          id="textInput"
+          class="text-input"
+          placeholder="Type or paste your text here... (max 5000 characters)"
+          maxlength="5000"
+          oninput="updateCharCount()"
+        ></textarea>
+        <div class="char-count">
+          <span id="charCount">0</span> / 5000 characters
+        </div>
+      </div>
+
+      <!-- Quick insert buttons -->
+      <div class="quick-btns">
+        <p class="quick-label">Try an example:</p>
+        <button class="quick-btn" onclick="insertExample(1)">📰 News headline</button>
+        <button class="quick-btn" onclick="insertExample(2)">📖 Story opening</button>
+        <button class="quick-btn" onclick="insertExample(3)">📢 Announcement</button>
+      </div>
+
+      <button class="convert-btn" id="convertBtn" onclick="convertTTS()">
+        <span class="btn-icon">🔊</span>
+        <span class="btn-text">Convert to Speech</span>
+      </button>
+
+      <!-- Progress -->
+      <div id="progressBox" style="display:none;">
+        <div class="progress-header">
+          <span>Converting your text...</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-track">
+          <div id="progressBar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Audio Player -->
+    <div id="playerBox" style="display:none;">
+      <div class="player-card">
+        <div class="player-header">
+          <div class="player-icon">🔊</div>
+          <div>
+            <h3>Your Audio is Ready!</h3>
+            <p class="audio-filename">Text to Speech conversion</p>
+          </div>
+        </div>
+        <audio controls id="myPlayer">
+          <source id="mySource" src="" type="audio/mpeg"/>
+        </audio>
+        <a id="downloadBtn" class="download-btn" download="tts-output.mp3">
+          ⬇️ Download MP3
+        </a>
+        <button class="convert-another-btn" onclick="resetTTS()">
+          🔄 Convert Another Text
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Update character count
+    function updateCharCount() {
+      const len = document.getElementById("textInput").value.length;
+      const counter = document.getElementById("charCount");
+      counter.textContent = len;
+      // Turn red when close to limit
+      counter.style.color = len > 4500 ? "#ff6584" : "rgba(255,255,255,0.4)";
+    }
+
+    // Insert example texts
+    function insertExample(n) {
+      const examples = {
+        1: "Breaking news: Scientists have discovered a new species of deep-sea fish that produces its own light using a unique bioluminescent organ never seen before in marine biology.",
+        2: "Once upon a time, in a small village nestled between two mountains, there lived a young girl who could speak to the stars. Every night she would climb to the rooftop and whisper her dreams into the sky.",
+        3: "Attention all passengers: The train to Platform 9 will be departing in five minutes. Please ensure you have all your belongings and make your way to the platform immediately."
+      };
+      document.getElementById("textInput").value = examples[n];
+      updateCharCount();
+    }
+
+    // Main conversion function
+    async function convertTTS() {
+      const text = document.getElementById("textInput").value.trim();
+      if (!text) { alert("Please type some text first!"); return; }
+
+      document.getElementById("progressBox").style.display = "block";
+      document.getElementById("convertBtn").disabled = true;
+      document.getElementById("convertBtn").style.opacity = "0.6";
+
+      // Animate progress
+      let w = 0;
+      const bar = document.getElementById("progressBar");
+      const pct = document.getElementById("progressPercent");
+      const timer = setInterval(() => {
+        if (w >= 90) clearInterval(timer);
+        else { w += 2; bar.style.width = w + "%"; pct.textContent = w + "%"; }
+      }, 100);
+
+      try {
+        const res = await fetch("/tts/convert", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: text })
+        });
+        const data = await res.json();
+        clearInterval(timer);
+        bar.style.width = "100%";
+        pct.textContent = "100%";
+
+        if (data.error) {
+          alert("Error: " + data.error);
+          document.getElementById("progressBox").style.display = "none";
+          document.getElementById("convertBtn").disabled = false;
+          document.getElementById("convertBtn").style.opacity = "1";
+          return;
+        }
+
+        setTimeout(() => {
+          document.getElementById("progressBox").style.display = "none";
+          document.getElementById("inputSection").style.display = "none";
+          document.getElementById("mySource").src = "/output/" + data.audio_file;
+          document.getElementById("myPlayer").load();
+          document.getElementById("downloadBtn").href = "/output/" + data.audio_file;
+          document.getElementById("playerBox").style.display = "block";
+          document.getElementById("convertBtn").disabled = false;
+          document.getElementById("convertBtn").style.opacity = "1";
+        }, 500);
+
+      } catch(e) {
+        clearInterval(timer);
+        alert("Error: " + e.message);
+        document.getElementById("progressBox").style.display = "none";
+        document.getElementById("convertBtn").disabled = false;
+        document.getElementById("convertBtn").style.opacity = "1";
+      }
+    }
+
+    function resetTTS() {
+      document.getElementById("inputSection").style.display = "block";
+      document.getElementById("playerBox").style.display = "none";
+      document.getElementById("textInput").value = "";
+      document.getElementById("charCount").textContent = "0";
+      document.getElementById("progressBar").style.width = "0%";
+    }
+  </script>
+    <script src="/static/theme.js"></script>
+     <script src="/static/loader.js"></script>
+     <script src="/static/chatbot.js"></script>
+</body>
+</html>

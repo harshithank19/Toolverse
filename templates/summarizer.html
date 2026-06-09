@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PDF Summarizer — ToolVerse</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/navbar.css" />
+</head>
+<body>
+
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+  <div class="blob blob3"></div>
+
+  <nav class="navbar">
+    <div class="nav-logo">⚡ ToolVerse</div>
+    <div class="nav-links">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/audiobook" class="nav-link">🎧 Audiobook</a>
+      <a href="/video" class="nav-link">🎬 Video</a>
+      <a href="/summarizer" class="nav-link active">📄 Summarizer</a>
+      <a href="/tts" class="nav-link">🔊 Text to Speech</a>
+      <a href="/imagetext" class="nav-link">🖼️ Image to Text</a>
+      <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
+    </div>
+  </nav>
+
+  <div class="page-header page-with-nav">
+    <p class="tag">📄 PDF Summarizer</p>
+    <h2 class="page-title">Upload a PDF. <span class="gradient-text">Get the gist.</span></h2>
+    <p class="page-desc">AI-powered summaries of any PDF — key points extracted in seconds.</p>
+  </div>
+
+  <div class="container">
+
+    <div class="wave-container">
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+    </div>
+
+    <div id="uploadSection">
+      <div class="upload-area">
+        <input type="file" id="pdfFile" accept=".pdf" hidden />
+        <div class="upload-icon">📄</div>
+        <h3>Click to choose your PDF</h3>
+        <p>Supports all PDF files</p>
+        <button class="browse-btn" onclick="document.getElementById('pdfFile').click()">
+          Choose PDF File
+        </button>
+        <p id="fileLabel" class="file-label">No file chosen</p>
+      </div>
+
+      <button class="convert-btn" id="convertBtn" onclick="summarizePDF()">
+        <span class="btn-icon">✨</span>
+        <span class="btn-text">Summarize with AI</span>
+      </button>
+
+      <div id="progressBox" style="display:none;">
+        <div class="progress-header">
+          <span>AI is reading your PDF...</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-track">
+          <div id="progressBar"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="resultBox" style="display:none;">
+      <div class="transcript-result-card">
+        <div class="transcript-result-header">
+          <div>
+            <h3>✅ Summary Ready!</h3>
+            <p class="word-count-label" id="summaryMeta"></p>
+          </div>
+          <button class="copy-btn" onclick="copySummary()">📋 Copy</button>
+        </div>
+        <div class="transcript-result-body" id="summaryResult"></div>
+        <button class="convert-another-btn" onclick="resetSummarizer()">
+          🔄 Summarize Another PDF
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    document.getElementById("pdfFile").addEventListener("change", function() {
+      document.getElementById("fileLabel").textContent = "✅ " + this.files[0].name;
+    });
+
+    async function summarizePDF() {
+      const f = document.getElementById("pdfFile");
+      if (!f.files.length) { alert("Please choose a PDF first!"); return; }
+
+      document.getElementById("progressBox").style.display = "block";
+      document.getElementById("convertBtn").disabled = true;
+      document.getElementById("convertBtn").style.opacity = "0.6";
+
+      let w = 0;
+      const bar = document.getElementById("progressBar");
+      const pct = document.getElementById("progressPercent");
+      const timer = setInterval(() => {
+        if (w >= 90) clearInterval(timer);
+        else { w += 1; bar.style.width = w + "%"; pct.textContent = w + "%"; }
+      }, 150);
+
+      const fd = new FormData();
+      fd.append("pdf", f.files[0]);
+
+      try {
+        const res = await fetch("/summarizer/convert", { method: "POST", body: fd });
+        const data = await res.json();
+        clearInterval(timer);
+        bar.style.width = "100%";
+        pct.textContent = "100%";
+
+        if (data.error) {
+          alert("Error: " + data.error);
+          document.getElementById("progressBox").style.display = "none";
+          document.getElementById("convertBtn").disabled = false;
+          document.getElementById("convertBtn").style.opacity = "1";
+          return;
+        }
+
+        setTimeout(() => {
+          document.getElementById("progressBox").style.display = "none";
+          document.getElementById("uploadSection").style.display = "none";
+          document.getElementById("summaryResult").textContent = data.summary;
+          const wordCount = data.summary.split(/\s+/).length;
+          document.getElementById("summaryMeta").textContent = "AI-generated · " + wordCount + " words";
+          document.getElementById("resultBox").style.display = "block";
+          document.getElementById("convertBtn").disabled = false;
+          document.getElementById("convertBtn").style.opacity = "1";
+        }, 500);
+
+      } catch(e) {
+        clearInterval(timer);
+        alert("Error: " + e.message);
+        document.getElementById("progressBox").style.display = "none";
+        document.getElementById("convertBtn").disabled = false;
+        document.getElementById("convertBtn").style.opacity = "1";
+      }
+    }
+
+    function copySummary() {
+      const text = document.getElementById("summaryResult").textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector(".copy-btn");
+        btn.textContent = "✅ Copied!";
+        setTimeout(() => btn.textContent = "📋 Copy", 2000);
+      });
+    }
+
+    function resetSummarizer() {
+      document.getElementById("uploadSection").style.display = "block";
+      document.getElementById("resultBox").style.display = "none";
+      document.getElementById("fileLabel").textContent = "No file chosen";
+      document.getElementById("progressBar").style.width = "0%";
+    }
+  </script>
+    <script src="/static/theme.js"></script>
+     <script src="/static/loader.js"></script>
+     <script src="/static/chatbot.js"></script>
+</body>
+</html>

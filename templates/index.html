@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ToolVerse — AI Media Tools</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/navbar.css" />
+</head>
+<body>
+
+  <!-- Animated background -->
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+  <div class="blob blob3"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-logo">⚡ ToolVerse</div>
+    <div class="nav-links">
+      <a href="/" class="nav-link active">Home</a>
+      <a href="/audiobook" class="nav-link">🎧 Audiobook</a>
+      <a href="/video" class="nav-link">🎬 Video</a>
+      <a href="/summarizer" class="nav-link">📄 Summarizer</a>
+      <a href="/tts" class="nav-link">🔊 Text to Speech</a>
+      <a href="/imagetext" class="nav-link">🖼️ Image to Text</a>
+      <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <div class="hero">
+    <p class="tag">✨ All your media tools in one place</p>
+    <h1 class="hero-title">
+      Convert. Transcribe.<br/>
+      <span class="gradient-text">Summarize. Listen.</span>
+    </h1>
+    <p class="hero-desc">
+      Powerful AI tools to transform your PDFs, videos, images and text —
+      completely free, no sign up needed.
+    </p>
+    <a href="/audiobook" class="hero-btn">Get Started Free →</a>
+  </div>
+
+  <!-- Tools Grid -->
+  <div class="tools-section">
+    <h2 class="section-title">Our Tools</h2>
+    <div class="tools-grid">
+
+      <a href="/audiobook" class="tool-card">
+        <div class="tool-icon" style="background: linear-gradient(135deg, #7c3aed, #db2777);">🎧</div>
+        <h3>PDF to Audiobook</h3>
+        <p>Convert any PDF into a natural sounding audiobook with live transcript highlighting</p>
+        <span class="tool-tag">Popular</span>
+      </a>
+
+      <a href="/video" class="tool-card">
+        <div class="tool-icon" style="background: linear-gradient(135deg, #0891b2, #7c3aed);">🎬</div>
+        <h3>Video to Transcript</h3>
+        <p>Upload any video and get a full text transcript in seconds</p>
+        <span class="tool-tag">New</span>
+      </a>
+
+      <a href="/summarizer" class="tool-card">
+        <div class="tool-icon" style="background: linear-gradient(135deg, #059669, #0891b2);">📄</div>
+        <h3>PDF Summarizer</h3>
+        <p>Upload a PDF and get a clean, concise AI-powered summary instantly</p>
+        <span class="tool-tag">AI</span>
+      </a>
+
+      <a href="/tts" class="tool-card">
+        <div class="tool-icon" style="background: linear-gradient(135deg, #d97706, #db2777);">🔊</div>
+        <h3>Text to Speech</h3>
+        <p>Type anything and convert it to natural sounding audio instantly</p>
+        <span class="tool-tag">Fast</span>
+      </a>
+
+      <a href="/imagetext" class="tool-card">
+        <div class="tool-icon" style="background: linear-gradient(135deg, #db2777, #f97316);">🖼️</div>
+        <h3>Image to Text</h3>
+        <p>Extract text from any image using powerful OCR technology</p>
+        <span class="tool-tag">OCR</span>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>⚡ ToolVerse — Built with Python & Flask</p>
+  </footer>
+  <script src="/static/theme.js"></script>
+   <script src="/static/loader.js"></script>
+   <script src="/static/chatbot.js"></script>
+</body>
+</html>
